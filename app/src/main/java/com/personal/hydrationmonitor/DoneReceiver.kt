@@ -25,19 +25,26 @@ class DoneReceiver : BroadcastReceiver() {
             prefs.edit().putInt("count", count).apply()
         }
 
-        // Remove notification
+        // Get the specific ID for this notification
+        val notificationId = intent?.getIntExtra("notification_id", -1) ?: -1
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.cancelAll()
+
+        if (notificationId != -1) {
+            // ONLY cancel the specific notification clicked
+            manager.cancel(notificationId)
+        }
 
         Toast.makeText(context, "Progress: $count / 3 💧", Toast.LENGTH_SHORT).show()
     }
 
     companion object {
-        fun getPendingIntent(context: Context): PendingIntent {
-            val intent = Intent(context, DoneReceiver::class.java)
+        fun getPendingIntent(context: Context, notificationId: Int): PendingIntent {
+            val intent = Intent(context, DoneReceiver::class.java).apply {
+                putExtra("notification_id", notificationId)
+            }
             return PendingIntent.getBroadcast(
                 context,
-                0,
+                notificationId, // Use the ID as request code to keep intents unique
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
